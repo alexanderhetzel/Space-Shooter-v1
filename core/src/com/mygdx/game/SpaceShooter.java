@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -30,6 +31,9 @@ public class SpaceShooter extends ApplicationAdapter {
     private Texture defenseShipImage;
     private Texture enemyShipImage;
     private Texture laserImage;
+    private BitmapFont font;
+    private int score = 0;
+    private Texture heartImage;
 
     //private Music rainMusic;
     //private Sound dropSound;
@@ -44,6 +48,7 @@ public class SpaceShooter extends ApplicationAdapter {
     private Rectangle defenseship;
     private Array<Rectangle> enemyShips;
     private Array<Rectangle> laserShots;
+    private Array<Texture> hearts;
 
 
     // Zeitstempel des letzten Regentropfens
@@ -53,16 +58,24 @@ public class SpaceShooter extends ApplicationAdapter {
     public void create() {
         enemyShips = new Array<>();
         laserShots = new Array<>();
+        hearts=new Array<>(3);
+        hearts.add(heartImage);
+        hearts.add(heartImage);
+        hearts.add(heartImage);
         batch = new SpriteBatch();
+
 
         // Lade Assets
         defenseShipImage = new Texture("DefenseShip64x64.png");
         enemyShipImage = new Texture("EnemyShip64x64.png");
         laserImage = new Texture("laser32x32.png");
+        heartImage = new Texture("heart.png");
         background1 = new Texture(Gdx.files.internal("background.png"));
         background2 = new Texture(Gdx.files.internal("background.png")); // identical
+        font = new BitmapFont(Gdx.files.internal("ssfont2.fnt"));
         yMax = 854;
-        yCoordBg1 = yMax*(-1); yCoordBg2 = 0;
+        yCoordBg1 = yMax * (1);
+        yCoordBg2 = 0;
         /*rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
         dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
 
@@ -85,6 +98,8 @@ public class SpaceShooter extends ApplicationAdapter {
         defenseship.y = HEIGHT / 2 - defenseship.height / 2;
 
         spawnEnemyShip();
+
+
     }
 
     private void spawnEnemyShip() {
@@ -98,6 +113,14 @@ public class SpaceShooter extends ApplicationAdapter {
         enemyShips.add(enemyShip);
         lastDropTime = TimeUtils.millis();
     }
+
+    /*private void showhearts(){
+        for (Texture heart : hearts){
+            Rectangle heart = new Rectangle();
+        }
+    }
+
+     */
 
     private void spawnLaser() {
         Rectangle lasershot = new Rectangle();
@@ -139,13 +162,12 @@ public class SpaceShooter extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) spawnLaser();
 
 
-
         // Spielfigur darf den Bildschirm nicht verlassen
 
-        if (defenseship.x < 0)  defenseship.x = 0;
+        if (defenseship.x < 0) defenseship.x = 0;
         if (defenseship.x > WIDTH - defenseship.width) defenseship.x = (WIDTH - defenseship.width);
         if (defenseship.y < 0) defenseship.y = 0;
-        if (defenseship.y >HEIGHT - defenseship.height) defenseship.y = (HEIGHT - defenseship.height);
+        if (defenseship.y > HEIGHT - defenseship.height) defenseship.y = (HEIGHT - defenseship.height);
 
         // Regentropfen erzeugen
         if (TimeUtils.millis() - lastDropTime > GAMESPEED) spawnEnemyShip();
@@ -188,6 +210,7 @@ public class SpaceShooter extends ApplicationAdapter {
                 if (lasershot.overlaps(enemyShip)) {
                     iterLaser.remove();
                     iterEnemyShip2.remove();
+                    score++;
                     //dropSound.play();
                 }
             }
@@ -196,9 +219,10 @@ public class SpaceShooter extends ApplicationAdapter {
 
 
         yCoordBg1 -= BACKGROUND_MOVE_SPEED * Gdx.graphics.getDeltaTime();
-        yCoordBg2 = yCoordBg1 + yMax;  // We move the background, not the camera
-        if (yCoordBg1 >= 0) {
-            yCoordBg1 = yMax*(-1); yCoordBg2 = 0;
+        yCoordBg2 = yCoordBg1 - yMax;  // We move the background, not the camera
+        if (yCoordBg1 <= 0) {
+            yCoordBg1 = yMax * (1);
+            yCoordBg2 = 0;
         }
         // Zeichnen
         batch.setProjectionMatrix(camera.combined);
@@ -206,8 +230,22 @@ public class SpaceShooter extends ApplicationAdapter {
 
         batch.draw(background1, yCoordBg1, 0);
         batch.draw(background2, yCoordBg2, 0);
+
+        font.getData().setScale(1f);
+        font.draw(batch, String.valueOf(score), WIDTH - 80, HEIGHT - 20);
+
+
         // Kübel rendern
         batch.draw(defenseShipImage, defenseship.x, defenseship.y);
+
+        //Hearts rendern
+
+        //Temporary if statements
+        if (!(score>2)) batch.draw(heartImage,WIDTH-140,HEIGHT-55);
+        if (!(score>1)) batch.draw(heartImage,WIDTH-180,HEIGHT-55);
+        if (!(score>0)) batch.draw(heartImage,WIDTH-220,HEIGHT-55);
+
+
         // Regentropfen rendern
 
 
