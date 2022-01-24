@@ -10,6 +10,7 @@ public class DesktopLauncher {
 		config.width=854;
 		config.height=480;
 		config.resizable=false;
+		config.vSyncEnabled=true;
 		new LwjglApplication(new SpaceShooter(), config);
 	}
 }
