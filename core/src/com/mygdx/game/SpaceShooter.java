@@ -31,6 +31,7 @@ public class SpaceShooter extends ApplicationAdapter {
     private Texture defenseShipImage;
     private Texture enemyShipImage;
     private Texture laserImage;
+    private Texture enemyLaserImage;
     private Texture gameOverScreen;
     private BitmapFont font;
     private int score = 0;
@@ -50,6 +51,7 @@ public class SpaceShooter extends ApplicationAdapter {
     private Rectangle defenseship;
     private Array<Rectangle> enemyShips;
     private Array<Rectangle> laserShots;
+    private Array<Rectangle> enemyLaserShots;
     private Array<Texture> hearts;
 
 
@@ -60,6 +62,7 @@ public class SpaceShooter extends ApplicationAdapter {
     public void create() {
         enemyShips = new Array<>();
         laserShots = new Array<>();
+        enemyLaserShots = new Array<>();
         hearts = new Array<>(3);
         hearts.add(heartImage);
         hearts.add(heartImage);
@@ -71,6 +74,7 @@ public class SpaceShooter extends ApplicationAdapter {
         defenseShipImage = new Texture("DefenseShip64x64-Dark.png");
         enemyShipImage = new Texture("EnemyShip64x64.png");
         laserImage = new Texture("laser48x11.png");
+        enemyLaserImage = new Texture("laserenemy48x11.png");
         heartImage = new Texture("heart.png");
         font = new BitmapFont(Gdx.files.internal("ssfont2.fnt"));
         background1 = new Texture(Gdx.files.internal("background.png"));
@@ -108,7 +112,7 @@ public class SpaceShooter extends ApplicationAdapter {
 
     }
 
-    private void spawnEnemyShip() {
+    private Rectangle spawnEnemyShip() {
         Rectangle enemyShip = new Rectangle();
         enemyShip.width = 64;
         enemyShip.height = 64;
@@ -118,6 +122,7 @@ public class SpaceShooter extends ApplicationAdapter {
 
         enemyShips.add(enemyShip);
         lastDropTime = TimeUtils.millis();
+        return enemyShip;
     }
 
     /*private void showhearts(){
@@ -129,14 +134,24 @@ public class SpaceShooter extends ApplicationAdapter {
      */
 
     private void spawnLaser() {
-        Rectangle lasershot = new Rectangle();
-        lasershot.width = 48;
-        lasershot.height = 11;
-        lasershot.x = defenseship.x + defenseship.width;
-        lasershot.y = defenseship.y + defenseship.height/2 - lasershot.height/2;
+        Rectangle laserShot = new Rectangle();
+        laserShot.width = 48;
+        laserShot.height = 11;
+        laserShot.x = defenseship.x + defenseship.width;
+        laserShot.y = defenseship.y + defenseship.height / 2 - laserShot.height / 2;
 
-        laserShots.add(lasershot);
+        laserShots.add(laserShot);
 
+    }
+
+    private void spawnEnemyLaser(Rectangle enemyship) {
+        Rectangle enemyLaserShot = new Rectangle();
+        enemyLaserShot.width = 48;
+        enemyLaserShot.height = 11;
+        enemyLaserShot.x = enemyship.x - enemyship.width;
+        enemyLaserShot.y = enemyship.y + enemyship.height / 2 - enemyLaserShot.height / 2;
+
+        enemyLaserShots.add(enemyLaserShot);
     }
 
     @Override
@@ -177,7 +192,8 @@ public class SpaceShooter extends ApplicationAdapter {
             if (defenseship.y > HEIGHT - defenseship.height) defenseship.y = (HEIGHT - defenseship.height);
 
             // Regentropfen erzeugen
-            if (TimeUtils.millis() - lastDropTime > GAMESPEED) spawnEnemyShip();
+            if (TimeUtils.millis() - lastDropTime > GAMESPEED) //spawnEnemyShip();
+                spawnEnemyLaser(spawnEnemyShip());
 
 
             // enemy fliegen lassen lassen
@@ -199,7 +215,27 @@ public class SpaceShooter extends ApplicationAdapter {
                 }
             }
 
-            //laser fliegen lassen
+            //enemylaser fliegen lassen
+            Iterator<Rectangle> iterEnemyLaser = enemyLaserShots.iterator();
+
+            while (iterEnemyLaser.hasNext()) {
+
+                Rectangle enemylasershot = iterEnemyLaser.next();
+                enemylasershot.x -= LASERSHOT_SPEED * Gdx.graphics.getDeltaTime();
+
+                // EnemyLaser außerhalb Bildschirmbereich
+                if (enemylasershot.x < 0)
+                    iterEnemyLaser.remove();
+
+                // Kollision EnemyLasershot und DefenseShip
+                if (enemylasershot.overlaps(defenseship)) {
+                    collisionCounter = 3;
+                    //dropSound.play();
+                }
+            }
+
+
+            //defenselaser fliegen lassen
             Iterator<Rectangle> iterLaser = laserShots.iterator();
 
             while (iterLaser.hasNext()) {
@@ -268,9 +304,14 @@ public class SpaceShooter extends ApplicationAdapter {
                 batch.draw(enemyShipImage, enemyShip.x, enemyShip.y);
             }
 
+            for (Rectangle enemylasershot : enemyLaserShots) {
+                batch.draw(enemyLaserImage, enemylasershot.x, enemylasershot.y);
+            }
+
         } else { //falls DefenseShip zerstört
             enemyShips.clear();
             laserShots.clear();
+            enemyLaserShots.clear();
             score = 0;
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
