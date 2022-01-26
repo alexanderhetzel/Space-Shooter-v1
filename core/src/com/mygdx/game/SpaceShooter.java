@@ -30,6 +30,7 @@ public class SpaceShooter extends ApplicationAdapter {
     private SpriteBatch batch;
     private Texture defenseShipImage;
     private Texture enemyShipImage;
+    private Texture backgroundPlanetsImage; //Planeten im Hintergrund
     private Texture laserImage;
     private Texture enemyLaserImage;
     private Texture gameOverScreen;
@@ -42,7 +43,7 @@ public class SpaceShooter extends ApplicationAdapter {
     //private Sound dropSound;
     Texture background1, background2;
     float yMax, yCoordBg1, yCoordBg2;
-    final int BACKGROUND_MOVE_SPEED = 100; // pixels per second. Put your value here.
+    final int BACKGROUND_MOVE_SPEED = 75; // pixels per second. Put your value here.
 
     //Camera
     private OrthographicCamera camera;
@@ -53,6 +54,7 @@ public class SpaceShooter extends ApplicationAdapter {
     private Array<Rectangle> laserShots;
     private Array<Rectangle> enemyLaserShots;
     private Array<Texture> hearts;
+    //private Array<Texture> planets; Derzeit noch inkompatibel
 
 
     // Zeitstempel des letzten Regentropfens
@@ -80,6 +82,7 @@ public class SpaceShooter extends ApplicationAdapter {
         background1 = new Texture(Gdx.files.internal("background.png"));
         background2 = new Texture(Gdx.files.internal("background.png")); // identical
         gameOverScreen = new Texture("GameOverScreen.png"); // identical
+        backgroundPlanetsImage = new Texture("planet1.png");
 
         //Background props
         yMax = 854;
@@ -143,6 +146,7 @@ public class SpaceShooter extends ApplicationAdapter {
         laserShots.add(laserShot);
 
     }
+    spawn
 
     private void spawnEnemyLaser(Rectangle enemyship) {
         Rectangle enemyLaserShot = new Rectangle();
@@ -275,6 +279,8 @@ public class SpaceShooter extends ApplicationAdapter {
             batch.draw(background1, yCoordBg1, 0);
             batch.draw(background2, yCoordBg2, 0);
 
+            batch.draw(backgroundPlanetsImage,200,200);
+
             font.getData().setScale(1f);
             font.draw(batch, String.valueOf(score), WIDTH - 80, HEIGHT - 20);
 
@@ -288,6 +294,8 @@ public class SpaceShooter extends ApplicationAdapter {
             if (!(collisionCounter > 2)) batch.draw(heartImage, WIDTH - 140, HEIGHT - 55);
             if (!(collisionCounter > 1)) batch.draw(heartImage, WIDTH - 180, HEIGHT - 55);
             if (!(collisionCounter > 0)) batch.draw(heartImage, WIDTH - 220, HEIGHT - 55);
+
+
 
 
             // Regentropfen rendern
